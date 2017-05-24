@@ -8,12 +8,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
+import android.widget.Toast;
 
+import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 import com.udacity.stockhawk.mock.MockUtils;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -26,8 +33,9 @@ import timber.log.Timber;
 import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
 import yahoofinance.histquotes.HistoricalQuote;
-import yahoofinance.histquotes.Interval;
 import yahoofinance.quotes.stock.StockQuote;
+
+import static android.os.Looper.getMainLooper;
 
 public final class QuoteSyncJob {
 
@@ -37,6 +45,15 @@ public final class QuoteSyncJob {
     private static final int INITIAL_BACKOFF = 10000;
     private static final int PERIODIC_ID = 1;
     private static final int YEARS_OF_HISTORY = 2;
+
+    /* StockStatus definition */
+    public static final int STOCK_STATUS_OK = 0;
+    public static final int STOCK_STATUS_INVALID = -1;
+    public static final int STOCK_STATUS_EMPTY = -2;
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({STOCK_STATUS_OK, STOCK_STATUS_INVALID, STOCK_STATUS_EMPTY})
+    public @interface StockStatus {
+    }
 
     private QuoteSyncJob() {
     }
@@ -71,32 +88,51 @@ public final class QuoteSyncJob {
 
             while (iterator.hasNext()) {
                 String symbol = iterator.next();
-
-
                 Stock stock = quotes.get(symbol);
-                StockQuote quote = stock.getQuote();
 
-                float price = quote.getPrice().floatValue();
-                float change = quote.getChange().floatValue();
-                float percentChange = quote.getChangeInPercent().floatValue();
+                StockQuote quote;
+                float price;
+                float change;
+                float percentChange;
+                StringBuilder historyBuilder;
 
-                // WARNING! Don't request historical data for a stock that doesn't exist!
-                // The request will hang forever X_x
-                // List<HistoricalQuote> history = stock.getHistory(from, to, Interval.WEEKLY);
+                try {
+                    quote = stock.getQuote();
 
-                // Note for reviewer:
-                // Due to problems with Yahoo API we have commented the line above
-                // and included this one to fetch the history from MockUtils
-                // This should be enough as to develop and review while the API is down
-                List<HistoricalQuote> history = MockUtils.getHistory();
+                    price = quote.getPrice().floatValue();
+                    change = quote.getChange().floatValue();
+                    Timber.d("Quote change: " + change);
+                    percentChange = quote.getChangeInPercent().floatValue();
 
-                StringBuilder historyBuilder = new StringBuilder();
+                    // WARNING! Don't request historical data for a stock that doesn't exist!
+                    // The request will hang forever X_x
+                    // List<HistoricalQuote> history = stock.getHistory(from, to, Interval.WEEKLY);
 
-                for (HistoricalQuote it : history) {
-                    historyBuilder.append(it.getDate().getTimeInMillis());
-                    historyBuilder.append(", ");
-                    historyBuilder.append(it.getClose());
-                    historyBuilder.append("\n");
+                    // Note for reviewer:
+                    // Due to problems with Yahoo API we have commented the line above
+                    // and included this one to fetch the history from MockUtils
+                    // This should be enough as to develop and review while the API is down
+                    List<HistoricalQuote> history = MockUtils.getHistory();
+
+                    historyBuilder = new StringBuilder();
+
+                    for (HistoricalQuote it : history) {
+                        historyBuilder.append(it.getDate().getTimeInMillis());
+                        historyBuilder.append(", ");
+                        historyBuilder.append(it.getClose());
+                        historyBuilder.append("\n");
+                    }
+
+                } catch (NullPointerException e) {
+                    Timber.e(e, "Unknown stock symbol: " + symbol);
+                    showErrorToast(context, symbol);
+                    PrefUtils.removeStock(context, symbol);
+                    if (PrefUtils.getStocks(context).size() == 0) {
+                        setStockStatus(context, STOCK_STATUS_EMPTY);
+                    } else {
+                        setStockStatus(context, STOCK_STATUS_INVALID);
+                    }
+                    continue;
                 }
 
                 ContentValues quoteCV = new ContentValues();
@@ -123,6 +159,24 @@ public final class QuoteSyncJob {
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");
         }
+    }
+
+    private static void showErrorToast(final Context context, final String symbol) {
+        Handler handler = new Handler(getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context,
+                        String.format(context.getString(R.string.toast_invalid_stock), symbol),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private static void setStockStatus(Context c, int stockStatus) {
+        PreferenceManager.getDefaultSharedPreferences(c).edit()
+                .putInt(c.getString(R.string.pref_status_key), stockStatus)
+                .apply();
     }
 
     private static void schedulePeriodic(Context context) {
