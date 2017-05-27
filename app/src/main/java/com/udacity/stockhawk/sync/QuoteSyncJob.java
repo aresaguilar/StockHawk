@@ -101,7 +101,6 @@ public final class QuoteSyncJob {
 
                     price = quote.getPrice().floatValue();
                     change = quote.getChange().floatValue();
-                    Timber.d("Quote change: " + change);
                     percentChange = quote.getChangeInPercent().floatValue();
 
                     // WARNING! Don't request historical data for a stock that doesn't exist!
