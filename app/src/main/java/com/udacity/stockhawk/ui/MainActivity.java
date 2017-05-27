@@ -29,6 +29,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
+@SuppressWarnings("CanBeFinal")
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         SwipeRefreshLayout.OnRefreshListener,
         StockAdapter.StockAdapterOnClickHandler {
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Timber.d("Symbol clicked: %s", symbol);
         Intent intent = new Intent(this, DetailActivity.class);
         intent.putExtra(DetailActivity.EXTRA_STOCK, symbol);
-        startActivity(intent);;
+        startActivity(intent);
     }
 
     @Override

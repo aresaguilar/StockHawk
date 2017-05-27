@@ -47,9 +47,9 @@ public final class QuoteSyncJob {
     private static final int YEARS_OF_HISTORY = 2;
 
     /* StockStatus definition */
-    public static final int STOCK_STATUS_OK = 0;
-    public static final int STOCK_STATUS_INVALID = -1;
-    public static final int STOCK_STATUS_EMPTY = -2;
+    private static final int STOCK_STATUS_OK = 0;
+    private static final int STOCK_STATUS_INVALID = -1;
+    private static final int STOCK_STATUS_EMPTY = -2;
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({STOCK_STATUS_OK, STOCK_STATUS_INVALID, STOCK_STATUS_EMPTY})
     public @interface StockStatus {
@@ -63,7 +63,6 @@ public final class QuoteSyncJob {
         Timber.d("Running sync job");
 
         Calendar from = Calendar.getInstance();
-        Calendar to = Calendar.getInstance();
         from.add(Calendar.YEAR, -YEARS_OF_HISTORY);
 
         try {

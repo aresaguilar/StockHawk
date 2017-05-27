@@ -31,8 +31,6 @@ public class DetailActivity extends AppCompatActivity
     private String mStockSymbol;
     private LineChart mHistoryLineChart;
 
-    private Cursor mCursor;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

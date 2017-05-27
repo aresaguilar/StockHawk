@@ -7,11 +7,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+@SuppressWarnings("CanBeFinal")
 class XAxisFormatter implements IAxisValueFormatter {
 
-    Float mFirstEntryTimestamp;
+    private Float mFirstEntryTimestamp;
 
-    public XAxisFormatter(Float firstEntryTimestamp) {
+    XAxisFormatter(Float firstEntryTimestamp) {
         mFirstEntryTimestamp = firstEntryTimestamp;
     }
 
