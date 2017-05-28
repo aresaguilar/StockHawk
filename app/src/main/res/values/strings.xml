@@ -39,4 +39,9 @@
     <string name="cd_add_stock">Add new stock</string>
     <string name="cd_stock_history">Stock history</string>
 
+    <!-- Widget -->
+    <string name="widget_label">StockHawk widget</string>
+    <string name="widget_cd">StockHawk stocks widget</string>
+    <string name="widget_no_stocks">No stocks added! Start the app to add your first one.</string>
+
 </resources>

@@ -18,6 +18,6 @@ class XAxisFormatter implements IAxisValueFormatter {
 
     @Override
     public String getFormattedValue(float v, AxisBase axisBase) {
-        return new SimpleDateFormat("dd/mm/yy", Locale.getDefault()).format(new Date((long) (v + mFirstEntryTimestamp)));
+        return new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(new Date((long) (v + mFirstEntryTimestamp)));
     }
 }
