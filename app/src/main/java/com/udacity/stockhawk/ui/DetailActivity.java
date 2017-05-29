@@ -1,5 +1,6 @@
 package com.udacity.stockhawk.ui;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -37,12 +38,17 @@ public class DetailActivity extends AppCompatActivity
         setContentView(R.layout.activity_detail);
 
         /* Get intent extras */
-        mStockSymbol = getIntent().getExtras().getString(EXTRA_STOCK);
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle extras = intent.getExtras();
+            if (extras != null && extras.containsKey(EXTRA_STOCK)) {
+                mStockSymbol = getIntent().getExtras().getString(EXTRA_STOCK);
+                this.setTitle(mStockSymbol);
+            }
+        }
 
         /* Get references to views */
         mHistoryLineChart = (LineChart) findViewById(R.id.lc_stock_history);
-
-        this.setTitle(mStockSymbol);
 
         /* Start loaders */
         getSupportLoaderManager().initLoader(LOADER_ID_HISTORY, null, this);
